@@ -1,0 +1,38 @@
+def negate(literal):
+    return literal[1:] if literal.startswith("~") else "~" + literal
+
+def resolve(ci, cj):
+    resolvents = []
+    for di in ci:
+        for dj in cj:
+            if di == negate(dj):
+                new_clause = list(set(ci + cj))
+                new_clause.remove(di)
+                new_clause.remove(dj)
+                resolvents.append(new_clause)
+    return resolvents
+
+def resolution(kb, query):
+    clauses = [c[:] for c in kb]
+    clauses.append([negate(q) for q in query])
+    
+    new = []
+    while True:
+        n = len(clauses)
+        for i in range(n):
+            for j in range(i + 1, n):
+                resolvents = resolve(clauses[i], clauses[j])
+                for res in resolvents:
+                    if not res:
+                        return True  # Empty clause found
+                    if res not in new:
+                        new.append(res)
+        if all(clause in clauses for clause in new):
+            return False  # No progress
+        clauses.extend(new)
+
+# Example Knowledge Base and Query
+kb = [["~P", "Q"], ["P"], ["~Q", "R"], ["~R"]]
+query = ["R"]
+
+print("Query is", "satisfiable." if resolution(kb, query) else "not satisfiable.")
