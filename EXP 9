@@ -1,0 +1,55 @@
+class BlocksWorld:
+    def __init__(self, num_blocks):
+        self.state = [[block] for block in range(num_blocks)]
+
+    def display_state(self):
+        for stack in self.state:
+            print(stack)
+
+    def find_stack(self, block):
+        for stack in self.state:
+            if block in stack:
+                return stack
+        return None
+
+    def move(self, block, destination):
+        src = self.find_stack(block)
+        dest = self.find_stack(destination) if destination is not None else None
+
+        if src is None:
+            print(f"Block {block} not found.")
+            return
+
+        # Remove block and all blocks above it from source
+        idx = src.index(block)
+        moving_blocks = src[idx:]
+        del src[idx:]
+
+        # If destination is None, put moving blocks in a new stack (table)
+        if dest is None:
+            self.state.append(moving_blocks)
+        else:
+            dest.extend(moving_blocks)
+
+        self.display_state()
+
+    def set_goal(self, goal):
+        self.state = goal
+        print("Goal state set:")
+        self.display_state()
+
+def main():
+    bw = BlocksWorld(3)
+    print("Initial state:")
+    bw.display_state()
+
+    goal = [[0, 1], [2]]
+    bw.set_goal(goal)
+
+    print("\nPerforming Moves:")
+    bw.move(0, 2)  # Move block 0 onto block 2
+    bw.move(1, 2)  # Move block 1 onto block 2
+    bw.move(2, None)  # Move block 2 to table (new stack)
+
+if __name__ == "__main__":
+    main()
