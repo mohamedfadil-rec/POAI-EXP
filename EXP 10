@@ -1,0 +1,53 @@
+import numpy as np
+
+def trimf(x, a, b, c):
+    left = np.zeros_like(x, dtype=float)
+    right = np.zeros_like(x, dtype=float)
+    
+    left_denom = b - a
+    if left_denom == 0:
+        left = np.where(x == b, 1.0, 0.0)
+    else:
+        left = np.clip((x - a) / left_denom, 0, 1)
+    
+    right_denom = c - b
+    if right_denom == 0:
+        right = np.where(x == b, 1.0, 0.0)
+    else:
+        right = np.clip((c - x) / right_denom, 0, 1)
+    
+    return np.minimum(left, right)
+
+# Define ranges
+temperature = np.arange(0, 41, 1)
+fan_speed = np.arange(0, 11, 1)
+
+# Membership functions with fixed trimf
+temp_low = trimf(temperature, 0, 0, 20)
+temp_medium = trimf(temperature, 10, 20, 30)
+temp_high = trimf(temperature, 20, 30, 40)
+
+fan_low = trimf(fan_speed, 0, 0, 5)
+fan_medium = trimf(fan_speed, 2, 5, 8)
+fan_high = trimf(fan_speed, 5, 10, 10)
+
+temperature_input = 28
+
+def fuzzify(input_val, x, mf):
+    return np.interp(input_val, x, mf)
+
+temp_low_level = fuzzify(temperature_input, temperature, temp_low)
+temp_medium_level = fuzzify(temperature_input, temperature, temp_medium)
+temp_high_level = fuzzify(temperature_input, temperature, temp_high)
+
+fan_activation = (fan_low * temp_low_level +
+                  fan_medium * temp_medium_level +
+                  fan_high * temp_high_level)
+
+def defuzz(x, mf):
+    return np.sum(x * mf) / np.sum(mf)
+
+fan_output = defuzz(fan_speed, fan_activation)
+
+print(f"Temperature: {temperature_input}°C")
+print(f"Fuzzified fan speed: {fan_output:.2f}")
