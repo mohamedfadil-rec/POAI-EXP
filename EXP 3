@@ -1,0 +1,62 @@
+PLAYER_X = 1
+PLAYER_O = -1
+EMPTY = 0
+
+def evaluate(board):
+    for i in range(3):
+        if abs(sum(board[i])) == 3: return board[i][0]  # Rows
+        if abs(sum(board[j][i] for j in range(3))) == 3: return board[0][i]  # Columns
+    if abs(sum(board[i][i] for i in range(3))) == 3: return board[0][0]  # Diagonal
+    if abs(sum(board[i][2 - i] for i in range(3))) == 3: return board[0][2]  # Anti-diagonal
+    return 0
+
+def is_moves_left(board):
+    return any(cell == EMPTY for row in board for cell in row)
+
+def minimax(board, is_max):
+    score = evaluate(board)
+    if score != 0 or not is_moves_left(board):
+        return score
+    best = -float('inf') if is_max else float('inf')
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == EMPTY:
+                board[i][j] = PLAYER_X if is_max else PLAYER_O
+                val = minimax(board, not is_max)
+                board[i][j] = EMPTY
+                best = max(best, val) if is_max else min(best, val)
+    return best
+
+def find_best_move(board):
+    best_val, move = -float('inf'), (-1, -1)
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == EMPTY:
+                board[i][j] = PLAYER_X
+                move_val = minimax(board, False)
+                board[i][j] = EMPTY
+                if move_val > best_val:
+                    best_val, move = move_val, (i, j)
+    return move
+
+def print_board(board):
+    symbols = {PLAYER_X: 'X', PLAYER_O: 'O', EMPTY: '.'}
+    for row in board:
+        print(' '.join(symbols[cell] for cell in row))
+
+# Example game
+board = [
+    [PLAYER_X, PLAYER_O, PLAYER_X],
+    [PLAYER_O, PLAYER_X, EMPTY],
+    [EMPTY,    PLAYER_O, PLAYER_X]
+]
+
+print("Current Board:")
+print_board(board)
+
+move = find_best_move(board)
+print(f"\nBest Move: {move}")
+board[move[0]][move[1]] = PLAYER_X
+
+print("\nBoard after best move:")
+print_board(board)
